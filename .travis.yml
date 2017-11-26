@@ -1,0 +1,21 @@
+sudo: required
+
+language: bash
+
+services:
+  - docker
+
+env:
+  global:
+    - DOCKER_HOSTING=quay.io
+    - DOCKER_IMAGE=quay.io/mtpereira/testing-express-api
+
+script:
+  - docker build --rm --tag "$DOCKER_IMAGE":"$TRAVIS_COMMIT" .
+  - docker run --rm "$DOCKER_IMAGE":"$TRAVIS_COMMIT" yarn run test
+
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD" "$DOCKER_HOSTING";
+    docker push "$DOCKER_IMAGE":"$TRAVIS_COMMIT";
+    fi
