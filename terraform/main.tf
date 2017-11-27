@@ -1,0 +1,140 @@
+provider "aws" {
+  region     = "${var.aws_region}"
+  access_key = "${var.aws_access_key}"
+  secret_key = "${var.aws_secret_key}"
+}
+
+resource "aws_vpc" "default" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_internet_gateway" "default" {
+  vpc_id = "${aws_vpc.default.id}"
+}
+
+resource "aws_route" "internet_access" {
+  route_table_id         = "${aws_vpc.default.main_route_table_id}"
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = "${aws_internet_gateway.default.id}"
+}
+
+resource "aws_subnet" "instances" {
+  vpc_id                  = "${aws_vpc.default.id}"
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+}
+
+resource "aws_security_group" "elb" {
+  name        = "testing-express-api-elb"
+  description = ""
+  vpc_id      = "${aws_vpc.default.id}"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "instances" {
+  name        = "testing-express-api"
+  description = ""
+  vpc_id      = "${aws_subnet.instances.id}"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["${aws_vpc.default.cidr_block}"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_elb" "default" {
+  name            = "testing-express-api"
+  subnets         = ["${aws_subnet.instances.id}"]
+  security_groups = ["${aws_security_group.elb.id}"]
+
+  listener {
+    instance_port     = 80
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 3
+    target              = "HTTP:80/health"
+    interval            = 5
+  }
+
+  cross_zone_load_balancing   = true
+  idle_timeout                = 5
+  connection_draining         = true
+  connection_draining_timeout = 60
+}
+
+resource "aws_key_pair" "default" {
+  key_name   = "${var.key_name}"
+  public_key = "${file(var.public_key_path)}"
+}
+
+data "template_file" "cloud-config" {
+  template = "${file("${path.module}/templates/cloud-config.yml.tpl")}"
+
+  vars {
+    app_name     = "${var.app_name}"
+    app_version  = "${var.app_version}"
+    docker_image = "${var.docker_image}"
+  }
+}
+
+resource "aws_launch_configuration" "default" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  image_id        = "${var.aws_ami_id}"
+  instance_type   = "t2.micro"
+  security_groups = ["${aws_security_group.instances.id}"]
+  key_name        = "${var.key_name}"
+}
+
+resource "aws_autoscaling_group" "default" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  name                = "${aws_launch_configuration.default.name}"
+  load_balancers      = ["${aws_elb.default.name}"]
+  vpc_zone_identifier = ["${aws_subnet.instances.id}"]
+  min_size            = 1
+  max_size            = 2
+  desired_capacity    = 2
+  min_elb_capacity    = 1
+
+  launch_configuration = "${aws_launch_configuration.default.name}"
+}
