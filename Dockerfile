@@ -11,3 +11,4 @@ COPY . .
 RUN yarn install --frozen-lockfile
 
 CMD ["yarn", "run", "start"]
+EXPOSE 3000

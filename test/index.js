@@ -17,3 +17,14 @@ test('Correct users returned', function (t) {
       t.end();
     });
 });
+
+test('Health endpoint returns 200 and no body', function (t) {
+  request(app)
+    .get('/health')
+    .expect(200)
+    .end(function (err, res) {
+      t.error(err, 'No error');
+      t.same(res.body, {}, 'Empty body as expected');
+      t.end();
+    });
+});
