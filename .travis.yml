@@ -13,6 +13,9 @@ env:
 script:
   - docker build --rm --tag "$DOCKER_IMAGE":"$TRAVIS_COMMIT" .
   - docker run --rm "$DOCKER_IMAGE":"$TRAVIS_COMMIT" yarn run test
+  - docker run --rm --detach --publish 127.0.0.1:3000:3000 "$DOCKER_IMAGE":"$TRAVIS_COMMIT"
+  - docker ps
+  - sleep 3 && curl -v http://127.0.0.1:3000/health
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
