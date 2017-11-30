@@ -30,8 +30,8 @@ resource "aws_security_group" "elb" {
   vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = "${var.service_port}"
+    to_port     = "${var.service_port}"
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -57,8 +57,8 @@ resource "aws_security_group" "instances" {
   }
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = "${var.app_port}"
+    to_port     = "${var.app_port}"
     protocol    = "tcp"
     cidr_blocks = ["${aws_vpc.default.cidr_block}"]
   }
@@ -77,9 +77,9 @@ resource "aws_elb" "default" {
   security_groups = ["${aws_security_group.elb.id}"]
 
   listener {
-    instance_port     = 80
+    instance_port     = "${var.app_port}"
     instance_protocol = "http"
-    lb_port           = 80
+    lb_port           = "${var.service_port}"
     lb_protocol       = "http"
   }
 
@@ -87,7 +87,7 @@ resource "aws_elb" "default" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
     timeout             = 3
-    target              = "HTTP:80/health"
+    target              = "HTTP:${var.app_port}/health"
     interval            = 5
   }
 
@@ -107,6 +107,7 @@ data "template_file" "cloud-config" {
 
   vars {
     app_name     = "${var.app_name}"
+    app_port     = "${var.app_port}"
     app_version  = "${var.app_version}"
     docker_image = "${var.docker_image}"
   }

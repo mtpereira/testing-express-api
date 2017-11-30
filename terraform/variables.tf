@@ -38,6 +38,16 @@ variable "app_version" {
   description = "Application version to be deployed. Maps directly to the docker image tag to be pulled by Container Linux."
 }
 
+variable "app_port" {
+  default     = "3000"
+  description = "Listening port number used by the application."
+}
+
+variable "service_port" {
+  default     = "80"
+  description = "Listening port number to be exposed on the ELB."
+}
+
 variable "docker_image" {
   default     = "quay.io/mtpereira/testing-express-api"
   description = "Docker image to pull."
