@@ -113,12 +113,32 @@ data "template_file" "cloud-config" {
   }
 }
 
+data "aws_ami" "instances" {
+  owners      = ["595879546273"]
+  most_recent = true
+
+  filter {
+    name   = "description"
+    values = ["CoreOS Container Linux stable *"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 resource "aws_launch_configuration" "default" {
   lifecycle {
     create_before_destroy = true
   }
 
-  image_id        = "${var.aws_ami_id}"
+  image_id        = "${data.aws_ami.instances.id}"
   instance_type   = "t2.micro"
   security_groups = ["${aws_security_group.instances.id}"]
   key_name        = "${var.key_name}"

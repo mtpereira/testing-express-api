@@ -23,11 +23,6 @@ variable "aws_secret_key" {
   description = "AWS secret key (AWS_SECRET_ACCESS_KEY)."
 }
 
-variable "aws_ami_id" {
-  default     = "ami-c3978aa7"
-  description = "Container Linux (CoreOS) Stable HVM in London."
-}
-
 variable "app_name" {
   default     = "testing-express-api"
   description = "Deployed application name."
