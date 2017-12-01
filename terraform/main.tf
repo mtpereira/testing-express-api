@@ -102,17 +102,6 @@ resource "aws_key_pair" "default" {
   public_key = "${file(var.public_key_path)}"
 }
 
-data "template_file" "cloud-config" {
-  template = "${file("${path.module}/templates/cloud-config.yml.tpl")}"
-
-  vars {
-    app_name     = "${var.app_name}"
-    app_port     = "${var.app_port}"
-    app_version  = "${var.app_version}"
-    docker_image = "${var.docker_image}"
-  }
-}
-
 data "aws_ami" "instances" {
   owners      = ["595879546273"]
   most_recent = true
@@ -133,6 +122,17 @@ data "aws_ami" "instances" {
   }
 }
 
+data "template_file" "cloud_config" {
+  template = "${file("${path.module}/templates/cloud-config.yml.tpl")}"
+
+  vars {
+    app_name     = "${var.app_name}"
+    app_port     = "${var.app_port}"
+    app_version  = "${var.app_version}"
+    docker_image = "${var.docker_image}"
+  }
+}
+
 resource "aws_launch_configuration" "default" {
   lifecycle {
     create_before_destroy = true
@@ -142,6 +142,7 @@ resource "aws_launch_configuration" "default" {
   instance_type   = "t2.micro"
   security_groups = ["${aws_security_group.instances.id}"]
   key_name        = "${var.key_name}"
+  user_data       = "${data.template_file.cloud_config.rendered}"
 }
 
 resource "aws_autoscaling_group" "default" {
