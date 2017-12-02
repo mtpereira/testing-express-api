@@ -127,7 +127,7 @@ data "aws_ami" "instances" {
 }
 
 data "template_file" "cloud_config" {
-  template = "${file("${path.module}/templates/cloud-config.yml.tpl")}"
+  template = "${file("${path.module}/templates/config.ign.tpl")}"
 
   vars {
     app_name     = "${var.app_name}"
