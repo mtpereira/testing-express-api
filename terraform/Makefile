@@ -1,17 +1,20 @@
-TARGETS = init plan apply clean destroy
+TARGETS = plan apply fix clean destroy
 
-.PHONY: $(TARGETS)
+.PHONY: apply fix clean destroy
 
-init: .terraform/
+.terraform/:
 	terraform init
 
-plan: init 
+plan: .terraform/
 	terraform plan -out plan
 
-apply: init plan
+apply: .terraform/ plan
 	terraform apply plan
 
-destroy: init
+fix: .terraform/ terraform.tfstate
+	terraform apply
+
+destroy: .terraform/
 	terraform destroy
 
 clean:
