@@ -18,9 +18,13 @@ resource "aws_route" "internet_access" {
   gateway_id             = "${aws_internet_gateway.default.id}"
 }
 
+data "aws_availability_zones" "available" {}
+
 resource "aws_subnet" "instances" {
   vpc_id                  = "${aws_vpc.default.id}"
-  cidr_block              = "10.0.1.0/24"
+  count                   = "${length(data.aws_availability_zones.available.names)}"
+  availability_zone       = "${data.aws_availability_zones.available.names[count.index]}"
+  cidr_block              = "${cidrsubnet(aws_vpc.default.cidr_block, 8, count.index)}"
   map_public_ip_on_launch = true
 }
 
@@ -47,7 +51,7 @@ resource "aws_security_group" "elb" {
 resource "aws_security_group" "instances" {
   name        = "testing-express-api"
   description = ""
-  vpc_id      = "${aws_subnet.instances.id}"
+  vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
     from_port   = 22
@@ -73,7 +77,7 @@ resource "aws_security_group" "instances" {
 
 resource "aws_elb" "default" {
   name            = "testing-express-api"
-  subnets         = ["${aws_subnet.instances.id}"]
+  subnets         = ["${aws_subnet.instances.*.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
 
   listener {
@@ -152,7 +156,7 @@ resource "aws_autoscaling_group" "default" {
 
   name                = "${aws_launch_configuration.default.name}"
   load_balancers      = ["${aws_elb.default.name}"]
-  vpc_zone_identifier = ["${aws_subnet.instances.id}"]
+  vpc_zone_identifier = ["${aws_subnet.instances.*.id}"]
   min_size            = 1
   max_size            = 2
   desired_capacity    = 2
