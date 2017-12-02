@@ -29,7 +29,6 @@ variable "app_name" {
 }
 
 variable "app_version" {
-  default     = ""
   description = "Application version to be deployed. Maps directly to the docker image tag to be pulled by Container Linux."
 }
 
