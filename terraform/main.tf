@@ -29,7 +29,7 @@ resource "aws_subnet" "instances" {
 }
 
 resource "aws_security_group" "elb" {
-  name        = "testing-express-api-elb"
+  name        = "${var.app_name}-elb"
   description = "testting-express-api-elb"
   vpc_id      = "${aws_vpc.default.id}"
 
@@ -49,8 +49,8 @@ resource "aws_security_group" "elb" {
 }
 
 resource "aws_security_group" "instances" {
-  name        = "testing-express-api"
-  description = "testing-express-api-instances"
+  name        = "${var.app_name}"
+  description = "${var.app_name}-instances"
   vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
@@ -76,7 +76,7 @@ resource "aws_security_group" "instances" {
 }
 
 resource "aws_elb" "default" {
-  name            = "testing-express-api"
+  name            = "${var.app_name}"
   subnets         = ["${aws_subnet.instances.*.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
 
