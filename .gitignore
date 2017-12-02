@@ -26,3 +26,8 @@ node_modules
 
 # Users Environment Variables
 .lock-wscript
+
+# Terraform local files, secrets and outputs
+.terraform/
+secrets.auto.tfvars
+plan
