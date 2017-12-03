@@ -30,7 +30,7 @@ resource "aws_subnet" "instances" {
 
 resource "aws_security_group" "elb" {
   name        = "${var.app_name}-elb"
-  description = "testting-express-api-elb"
+  description = "${var.app_name}-elb"
   vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
