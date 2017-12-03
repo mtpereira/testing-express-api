@@ -1,3 +1,13 @@
+# Configure remote state. No string interpolation available.
+terraform {
+  backend "s3" {
+    bucket         = "terraform-testing-express-api"
+    key            = "deployment/terraform.state"
+    dynamodb_table = "terraform-lock-testing-express-api"
+    region         = "eu-west-2"
+  }
+}
+
 provider "aws" {
   region     = "${var.aws_region}"
   access_key = "${var.aws_access_key}"
