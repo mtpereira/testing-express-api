@@ -1,13 +1,3 @@
-variable "public_key_path" {
-  default     = "~/.ssh/id_rsa.pub"
-  description = "Path for the SSH public key to be used for ."
-}
-
-variable "key_name" {
-  default     = "testing-express-api"
-  description = "SSH key pair name"
-}
-
 variable "aws_region" {
   default     = "eu-west-2"
   description = "AWS region to create stack."

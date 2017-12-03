@@ -111,11 +111,6 @@ resource "aws_elb" "default" {
   connection_draining_timeout = 60
 }
 
-resource "aws_key_pair" "default" {
-  key_name   = "${var.key_name}"
-  public_key = "${file(var.public_key_path)}"
-}
-
 data "aws_ami" "instances" {
   owners      = ["595879546273"]
   most_recent = true
@@ -155,7 +150,6 @@ resource "aws_launch_configuration" "default" {
   image_id        = "${data.aws_ami.instances.id}"
   instance_type   = "t2.micro"
   security_groups = ["${aws_security_group.instances.id}"]
-  key_name        = "${var.key_name}"
   user_data       = "${data.template_file.cloud_config.rendered}"
 }
 
