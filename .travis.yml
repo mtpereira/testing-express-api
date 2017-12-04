@@ -32,6 +32,7 @@ before_deploy:
   - scripts/setup_remote_state.sh
 
 deploy:
+  skip_cleanup: true
   - provider: script
     script: scripts/deploy.sh
     on:
