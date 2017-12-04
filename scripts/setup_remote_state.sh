@@ -2,7 +2,7 @@
 
 set -u
 
-source ./env
+. ./env
 
 docker run \
     --rm \
