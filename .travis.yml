@@ -29,7 +29,7 @@ before_deploy:
   - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> env
   - echo "AWS_REGIONS=$AWS_REGION" >> env
   - echo "app_version = \"$TRAVIS_COMMIT\"" > terraform/app_version.auto.tfvars
-  - scripts/setup_bucket.sh
+  - scripts/setup_remote_state.sh
 
 deploy:
   - provider: script
