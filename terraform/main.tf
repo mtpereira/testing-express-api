@@ -1,3 +1,13 @@
+# Configure remote state. No string interpolation available.
+terraform {
+  backend "s3" {
+    bucket         = "terraform-testing-express-api"
+    key            = "deployment/terraform.state"
+    dynamodb_table = "terraform-lock-testing-express-api"
+    region         = "eu-west-2"
+  }
+}
+
 provider "aws" {
   region     = "${var.aws_region}"
   access_key = "${var.aws_access_key}"
@@ -30,7 +40,7 @@ resource "aws_subnet" "instances" {
 
 resource "aws_security_group" "elb" {
   name        = "${var.app_name}-elb"
-  description = "testting-express-api-elb"
+  description = "${var.app_name}-elb"
   vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
@@ -101,11 +111,6 @@ resource "aws_elb" "default" {
   connection_draining_timeout = 60
 }
 
-resource "aws_key_pair" "default" {
-  key_name   = "${var.key_name}"
-  public_key = "${file(var.public_key_path)}"
-}
-
 data "aws_ami" "instances" {
   owners      = ["595879546273"]
   most_recent = true
@@ -145,7 +150,6 @@ resource "aws_launch_configuration" "default" {
   image_id        = "${data.aws_ami.instances.id}"
   instance_type   = "t2.micro"
   security_groups = ["${aws_security_group.instances.id}"]
-  key_name        = "${var.key_name}"
   user_data       = "${data.template_file.cloud_config.rendered}"
 }
 

@@ -8,7 +8,8 @@ services:
 env:
   global:
     - DOCKER_HOSTING=quay.io
-    - DOCKER_IMAGE=quay.io/mtpereira/testing-express-api
+    - DOCKER_IMAGE=quay.io/$TRAVIS_REPO_SLUG
+    - TERRAFORM_VERSION=0.11.1
 
 script:
   - docker build --rm --tag "$DOCKER_IMAGE":"$TRAVIS_COMMIT" .
@@ -19,6 +20,23 @@ script:
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker login --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD" "$DOCKER_HOSTING";
-    docker push "$DOCKER_IMAGE":"$TRAVIS_COMMIT";
+      docker login --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD" "$DOCKER_HOSTING";
+      docker push "$DOCKER_IMAGE":"$TRAVIS_COMMIT";
     fi
+
+before_deploy:
+  - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> env
+  - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> env
+  - echo "AWS_REGIONS=$AWS_REGION" >> env
+  - echo "app_version = \"$TRAVIS_COMMIT\"" > terraform/app_version.auto.tfvars
+  - scripts/setup_bucket.sh
+
+deploy:
+  - provider: script
+    script: scripts/deploy.sh
+    on:
+      branch: master
+      repo: $TRAVIS_REPO_SLUG
+
+after_deploy:
+  - rm -f env terraform/app_version.auto.tfvars
