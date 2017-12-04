@@ -21,3 +21,5 @@ docker run \
     --env-file env \
     mesosphere/aws-cli:latest \
     dynamodb create-table --table-name terraform-lock-testing-express-api --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --region "$AWS_REGION"
+
+exit 0
