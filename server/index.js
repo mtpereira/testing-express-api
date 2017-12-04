@@ -2,7 +2,7 @@
 
 var express = require('express');
 var app = express();
-var users = ['John', 'Betty', 'Hal'];
+var users = ['John', 'Betty', 'Hal', 'Alex'];
 
 app.get('/api/users', function (req, res) {
   res.json(users);
